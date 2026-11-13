@@ -1,0 +1,13 @@
+# secrets and runtime state - do not commit
+*.credentials
+*.sqlite3
+*.log
+*.bak
+__pycache__/
+
+# internal handoff notes contain private infra details - keep local only
+AI_HANDOFF.md
+
+# local workspace: legacy archive contains real secrets; Plugins-readonly is
+# a clone of the private ParallelWorldLabs/Plugins repo - never push either
+work/
