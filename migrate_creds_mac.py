@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""把本机 DPAPI 加密的凭据迁移到 205 并部署 launchd 常驻服务（一条命令完成）。
+"""把本机 DPAPI 加密的凭据迁移到 macOS 服务器并部署 launchd 常驻服务（一条命令完成）。
 
 安全约定：
 - 解密只发生在本进程内存，凭据不打印、不写任何本地临时文件；
-- 凭据经 SSH 加密通道（stdin）送进 205 的 deploy_creds.py，远端只写 chmod 600 的 plist；
+- 凭据经 SSH 加密通道（stdin）送进远端的 deploy_creds.py，远端只写 chmod 600 的 plist；
 - 终端与日志只出现状态信息（字段名、校验结果），不含凭据内容。
 
-用法：python migrate_creds_205.py
-前置：已运行 --save-credentials 与 --save-llm-key；205 的 ~/chatwoot-odoo-bot/ 已有
-chatwoot_test_bot.py 与 deploy_creds.py；本机到 205 的 SSH 免密可用。
+用法：python migrate_creds_mac.py
+前置：已运行 --save-credentials 与 --save-llm-key；目标机 ~/chatwoot-odoo-bot/ 已有
+chatwoot_test_bot.py 与 deploy_creds.py；本机到目标机的 SSH 免密可用。
 """
 import importlib.util
 import json
@@ -18,9 +18,17 @@ import sys
 from pathlib import Path
 
 BOT_PATH = Path(__file__).resolve().parent / "chatwoot_test_bot.py"
-# SSH 目标默认指向内网 205；可用环境变量覆盖（如更换主机或用户名），避免在代码里固定账号信息
-REMOTE = os.environ.get("CHATWOOT_MIGRATE_REMOTE", "mac5@192.168.0.205")
+# SSH 目标：环境变量 CHATWOOT_MIGRATE_REMOTE 指定（如 user@192.168.1.50），
+# 未设置时报错退出而不猜测目标——不把任何具体主机写进代码。
+REMOTE = os.environ.get("CHATWOOT_MIGRATE_REMOTE", "").strip()
 REMOTE_CMD = "python3 ~/chatwoot-odoo-bot/deploy_creds.py"
+
+if not REMOTE:
+    raise SystemExit(
+        "未指定迁移目标。请先设置环境变量 CHATWOOT_MIGRATE_REMOTE=user@主机，例如：\n"
+        "  PowerShell:  $env:CHATWOOT_MIGRATE_REMOTE='user@192.168.1.50'; python migrate_creds_mac.py\n"
+        "  bash:        CHATWOOT_MIGRATE_REMOTE=user@192.168.1.50 python3 migrate_creds_mac.py"
+    )
 
 # 加载正式机器人模块，复用它同一套 DPAPI 与凭据文件路径逻辑，保证读到的就是运行时用的凭据
 spec = importlib.util.spec_from_file_location("migrate_bot", BOT_PATH)
@@ -51,4 +59,4 @@ sys.stdout.write(result.stdout.decode("utf-8", "replace"))
 if result.returncode != 0:
     sys.stderr.write(result.stderr.decode("utf-8", "replace"))
     raise SystemExit(f"远端部署失败（exit {result.returncode}）。")
-print("迁移与部署完成：205 已接管自动回复。")
+print("迁移与部署完成：远端已接管自动回复。")

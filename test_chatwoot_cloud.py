@@ -16,7 +16,7 @@ spec = importlib.util.spec_from_file_location("cloud_bot", ROOT / "chatwoot_test
 bot = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(bot)
 
-# 模块默认目标（205 内网），所有用例结束后必须恢复成它，避免污染其他测试模块。
+# 模块默认目标（代码常量），所有用例结束后必须恢复成它，避免污染其他测试模块。
 DEFAULTS = ("http", "192.168.0.205", 3000)
 FAKE_TOKEN = "token-1234567890abcdefghij"
 
@@ -106,7 +106,7 @@ class EnvConfigTests(CloudTestCase):
         )
 
     def test_no_env_keeps_defaults(self):
-        # 未设任何环境变量时零变化——保证既有部署（Windows 测试机/205）不受影响
+        # 未设任何环境变量时零变化——保证既有部署不受影响
         bot.apply_chatwoot_env()
         self.assertEqual((bot.CHATWOOT_SCHEME, bot.CHATWOOT_HOST, bot.CHATWOOT_PORT), DEFAULTS)
 

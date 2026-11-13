@@ -27,7 +27,7 @@ from pathlib import Path
 
 CHATWOOT_HOST = "192.168.0.205"
 CHATWOOT_PORT = 3000
-# —— 云端预留：Chatwoot 从 205 内网迁到公网/云端时，只需通过环境变量或 --chatwoot-host 换目标 ——
+# —— 云端预留：Chatwoot 迁到公网/云端时，只需通过环境变量或 --chatwoot-host 换目标 ——
 CHATWOOT_SCHEME = "http"                    # 连接协议：内网明文 http，云端 TLS 用 https
 CHATWOOT_TIMEOUT_SECONDS = 10               # 单次 Chatwoot 请求超时（公网往返比内网慢，放宽到 10 秒）
 CHATWOOT_SCHEME_ENV = "CHATWOOT_SCHEME"     # 环境变量名：连接协议（http/https）
@@ -290,7 +290,7 @@ def apply_chatwoot_endpoint(value):
 
 def apply_chatwoot_env():
     # 云端预留：从 CHATWOOT_SCHEME / CHATWOOT_HOST / CHATWOOT_PORT 三个环境变量读取目标。
-    # 只有显式设置的变量才生效，全部未设置时保持模块默认（205 内网），既有部署零变化；
+    # 只有显式设置的变量才生效，全部未设置时保持模块默认，既有部署零变化；
     # 给了 host 时按「scheme://host:port」拼好后统一走解析，缺项由解析器补默认值。
     global CHATWOOT_SCHEME, CHATWOOT_HOST, CHATWOOT_PORT
     scheme = os.environ.get(CHATWOOT_SCHEME_ENV, "").strip().lower()
@@ -839,7 +839,7 @@ def make_server(listen_ip, port, webhook_path, inbox_id, token, secret):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--callback-host", help="Chatwoot 能解析的本机域名，默认使用本机内网 IP")
-    parser.add_argument("--chatwoot-host", help="Chatwoot 地址：host、host:port 或 https://域名（内网默认 192.168.0.205:3000；迁云端后传 https://<域名>）")
+    parser.add_argument("--chatwoot-host", help="Chatwoot 地址：host、host:port 或 https://域名（默认见代码常量 CHATWOOT_HOST；迁云端后传 https://<域名>）")
     parser.add_argument("--listen", help="HTTP 监听地址，默认使用本机内网 IP；反向隧道方案固定用 127.0.0.1")
     parser.add_argument("--inbox", type=int, help="收件箱 ID，不填则交互输入（一键恢复脚本用）")
     parser.add_argument("--token", help="机器人 Access Token，不填则交互输入（一键恢复脚本用）")
@@ -853,7 +853,7 @@ def main():
     args = parser.parse_args()
 
     # 云端预留：先应用环境变量（CHATWOOT_SCHEME/HOST/PORT），再用 --chatwoot-host 覆盖。
-    # 两级配置都只在显式给出时生效，默认仍是 205 内网地址；带 https:// 前缀自动切换 TLS 连接。
+    # 两级配置都只在显式给出时生效，默认见代码常量；带 https:// 前缀自动切换 TLS 连接。
     apply_chatwoot_env()
     if args.chatwoot_host:
         try:

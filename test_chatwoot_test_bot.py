@@ -90,7 +90,7 @@ with tempfile.TemporaryDirectory(dir=ROOT / "work") as temporary:
     assert path == bot.initialize_state()
     with serve(ThreadingHTTPServer(("127.0.0.1", 0), FakeChatwoot)) as chatwoot_port:
         bot.CHATWOOT_PORT = chatwoot_port
-        callback = f"http://192.168.0.107:18787{path}"
+        callback = f"http://203.0.113.10:18787{path}"
         try:
             bot.register_agent_bot(callback, "invalid-token")
         except RuntimeError as error:
